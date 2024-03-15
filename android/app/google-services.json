@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "720893012747",
+    "project_id": "cs4720-uva-demo",
+    "storage_bucket": "cs4720-uva-demo.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:720893012747:android:03666dababc7fc115cd00e",
+        "android_client_info": {
+          "package_name": "com.example.flutter_firebase_demo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "720893012747-pd3p4q4ik328au44adjqtq47tm97ffc5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDd2_EBYP6bMEtSHMAe2SmTXoV3aYsGPY8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "720893012747-pd3p4q4ik328au44adjqtq47tm97ffc5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
