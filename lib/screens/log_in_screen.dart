@@ -40,6 +40,8 @@ class _SignInScreenState extends State<SignInScreen> {
         result = 'No user found for that email.';
       } else if (e.code == 'wrong-password') {
         result = 'Wrong password provided for that user.';
+      } else {
+        result = e.code;
       }
     } catch (e) {
       result = e.toString();
@@ -62,6 +64,10 @@ class _SignInScreenState extends State<SignInScreen> {
         result = 'The password provided is too weak.';
       } else if (e.code == 'email-already-in-use') {
         result = 'The account already exists for that email.';
+      } else if (e.code == 'invalid-email'){
+        result = 'Bad email format...';
+      } else {
+        result = e.code;
       }
     } catch (e) {
       result = e.toString();
