@@ -11,21 +11,15 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
-  int _counter = 0;
   final _emailFieldController = TextEditingController();
   final _passwordFieldController = TextEditingController();
   String _statusLabel = "";
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
   void _signIn() async {
     var result = "";
     try {
-      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      final credential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
         email: _emailFieldController.text,
         password: _passwordFieldController.text,
       );
@@ -54,7 +48,8 @@ class _SignInScreenState extends State<SignInScreen> {
   void _createUser() async {
     var result = "";
     try {
-      final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
         email: _emailFieldController.text,
         password: _passwordFieldController.text,
       );
@@ -109,11 +104,6 @@ class _SignInScreenState extends State<SignInScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+     );
   }
 }

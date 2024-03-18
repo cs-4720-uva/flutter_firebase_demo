@@ -17,22 +17,47 @@ class _NotesScreenState extends State<NotesScreen> {
   @override
   void initState() {
     _user = FirebaseAuth.instance.currentUser!;
+    super.initState();
   }
 
   Stream<QuerySnapshot> _allNotes() {
-    return FirebaseFirestore.instance.collection("notes").snapshots();
+    return FirebaseFirestore.instance
+        .collection("notes")
+
+        .snapshots();
   }
 
   Stream<QuerySnapshot> _userNotes() {
     return FirebaseFirestore.instance
-        .collection("notes")
-        .where("author", isEqualTo: _user.email)
+        .collection("users")
+        .doc(_user.uid)
+        .collection("private_notes")
         .snapshots();
   }
 
   void _saveNote() async {
     var noteText = _newNoteController.text;
     FirebaseFirestore.instance.collection("notes").add({
+      "note": noteText,
+      "votes": 0,
+      "author": _user.email,
+    }).then((value) {
+      _newNoteController.text = "";
+      var snackBar = const SnackBar(
+        content: Text("Note Added!"),
+        duration: Duration(seconds: 3),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    });
+  }
+
+  void _savePrivateNote() async {
+    var noteText = _newNoteController.text;
+    FirebaseFirestore.instance
+        .collection("users")
+        .doc(_user.uid)
+        .collection("private_notes")
+        .add({
       "note": noteText,
       "votes": 0,
       "author": _user.email,
@@ -64,6 +89,7 @@ class _NotesScreenState extends State<NotesScreen> {
                   decoration: const InputDecoration(
                       border: OutlineInputBorder(), hintText: "New Note")),
               TextButton(onPressed: _saveNote, child: const Text("Save")),
+              TextButton(onPressed: _savePrivateNote, child: const Text("Save as Private Note")),
               switchRow(),
               firestoreNotesList(),
             ]),
@@ -112,11 +138,11 @@ class _NotesScreenState extends State<NotesScreen> {
       children: [
         Text(doc["note"]),
         const VerticalDivider(thickness: 15),
-        Text(doc["votes"].toString()),
-        const VerticalDivider(thickness: 15),
-        IconButton(
-            onPressed: () => _incrementVote(doc),
-            icon: const Icon(Icons.thumb_up)),
+        if (!_userNotesOnlySwitch) Text("${_likeCount(doc)}"),
+        if (!_userNotesOnlySwitch) const VerticalDivider(thickness: 15),
+        if (!_userNotesOnlySwitch) IconButton(
+            onPressed: () => _toggleLike(doc),
+            icon: Icon(_isLiked(doc) ? Icons.thumb_up : Icons.thumb_up_outlined)),
         if (_user.email == doc["author"])
           IconButton(
               onPressed: () => _deleteNote(doc),
@@ -129,11 +155,18 @@ class _NotesScreenState extends State<NotesScreen> {
     FirebaseFirestore.instance.collection("notes").doc(doc.id).delete();
   }
 
-  void _incrementVote(DocumentSnapshot doc) {
+  void _toggleLike(DocumentSnapshot doc) {
     FirebaseFirestore.instance.runTransaction((transaction) async {
       DocumentSnapshot freshSnap = await transaction.get(doc.reference);
-      await transaction
-          .update(freshSnap.reference, {"votes": freshSnap["votes"] + 1});
+      if (_isLiked(doc)) {
+        await transaction
+            .update(freshSnap.reference,
+            {"liked_by": FieldValue.arrayRemove([_user.uid])});
+      } else {
+        await transaction
+            .update(freshSnap.reference,
+            {"liked_by": FieldValue.arrayUnion([_user.uid])});
+      }
     });
   }
 
@@ -141,5 +174,15 @@ class _NotesScreenState extends State<NotesScreen> {
   void dispose() {
     FirebaseAuth.instance.signOut();
     super.dispose();
+  }
+
+  bool _isLiked(DocumentSnapshot doc) {
+    List likedBy = doc["liked_by"];
+    return likedBy.contains(_user.uid);
+  }
+
+  int _likeCount(DocumentSnapshot doc) {
+    List likedBy = doc["liked_by"];
+    return likedBy.length;
   }
 }
