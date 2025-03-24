@@ -21,10 +21,7 @@ class _NotesScreenState extends State<NotesScreen> {
   }
 
   Stream<QuerySnapshot> _allNotes() {
-    return FirebaseFirestore.instance
-        .collection("notes")
-
-        .snapshots();
+    return FirebaseFirestore.instance.collection("notes").snapshots();
   }
 
   Stream<QuerySnapshot> _userNotes() {
@@ -37,9 +34,10 @@ class _NotesScreenState extends State<NotesScreen> {
 
   void _saveNote() async {
     var noteText = _newNoteController.text;
+
     FirebaseFirestore.instance.collection("notes").add({
       "note": noteText,
-      "votes": 0,
+      "liked_by": <String>[],
       "author": _user.email,
     }).then((value) {
       _newNoteController.text = "";
@@ -59,8 +57,8 @@ class _NotesScreenState extends State<NotesScreen> {
         .collection("private_notes")
         .add({
       "note": noteText,
-      "votes": 0,
       "author": _user.email,
+      "liked_by": <String>[]
     }).then((value) {
       _newNoteController.text = "";
       var snackBar = const SnackBar(
@@ -89,7 +87,9 @@ class _NotesScreenState extends State<NotesScreen> {
                   decoration: const InputDecoration(
                       border: OutlineInputBorder(), hintText: "New Note")),
               TextButton(onPressed: _saveNote, child: const Text("Save")),
-              TextButton(onPressed: _savePrivateNote, child: const Text("Save as Private Note")),
+              TextButton(
+                  onPressed: _savePrivateNote,
+                  child: const Text("Save as Private Note")),
               switchRow(),
               firestoreNotesList(),
             ]),
@@ -98,19 +98,16 @@ class _NotesScreenState extends State<NotesScreen> {
   }
 
   Widget switchRow() {
-    return
-      Row(
-        children: [
-          const Text("Show personal notes: "),
-          Switch(
-            value: _userNotesOnlySwitch,
-            onChanged: (bool value) {
-              setState(() {
-                _userNotesOnlySwitch = value;
-              });
-            }),
-        ]
-      );
+    return Row(children: [
+      const Text("Show personal notes: "),
+      Switch(
+          value: _userNotesOnlySwitch,
+          onChanged: (bool value) {
+            setState(() {
+              _userNotesOnlySwitch = value;
+            });
+          }),
+    ]);
   }
 
   Widget firestoreNotesList() {
@@ -140,9 +137,12 @@ class _NotesScreenState extends State<NotesScreen> {
         const VerticalDivider(thickness: 15),
         if (!_userNotesOnlySwitch) Text("${_likeCount(doc)}"),
         if (!_userNotesOnlySwitch) const VerticalDivider(thickness: 15),
-        if (!_userNotesOnlySwitch) IconButton(
-            onPressed: () => _toggleLike(doc),
-            icon: Icon(_isLiked(doc) ? Icons.thumb_up : Icons.thumb_up_outlined)),
+        if (!_userNotesOnlySwitch)
+          IconButton(
+              onPressed: () => _toggleLike(doc),
+              icon: Icon(
+                  _isLiked(doc) ? Icons.thumb_up
+                      : Icons.thumb_up_outlined)),
         if (_user.email == doc["author"])
           IconButton(
               onPressed: () => _deleteNote(doc),
@@ -159,13 +159,13 @@ class _NotesScreenState extends State<NotesScreen> {
     FirebaseFirestore.instance.runTransaction((transaction) async {
       DocumentSnapshot freshSnap = await transaction.get(doc.reference);
       if (_isLiked(doc)) {
-        await transaction
-            .update(freshSnap.reference,
-            {"liked_by": FieldValue.arrayRemove([_user.uid])});
+        transaction.update(freshSnap.reference, {
+          "liked_by": FieldValue.arrayRemove([_user.uid])
+        });
       } else {
-        await transaction
-            .update(freshSnap.reference,
-            {"liked_by": FieldValue.arrayUnion([_user.uid])});
+        transaction.update(freshSnap.reference, {
+          "liked_by": FieldValue.arrayUnion([_user.uid])
+        });
       }
     });
   }
